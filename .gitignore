@@ -396,6 +396,7 @@ client/python/projectairsim/dist/
 *.slxc
 
 venv
+.pixi/
 
 AGENTS.md
 # Optional Unreal vehicle asset packs (installed by tools/assets/install_suv_assets.ps1)
