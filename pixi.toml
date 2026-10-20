@@ -12,6 +12,16 @@ hello-drone = { cmd = "python hello_drone.py", cwd = "client/python/example_user
 keyboard-control = { cmd = "python keyboard_control.py", cwd = "client/python/example_user_scripts" }
 lidar-gpu = { cmd = "python lidar_basic_gpu.py", cwd = "client/python/example_user_scripts" }
 
+# --- SCBT: Self-Crystallizing Behavior Trees (research code, see scbt/) ---
+scbt-runtime = { cmd = "python -m scbt.sim.launch_runtime", cwd = "scbt" }
+scbt-episode = { cmd = "python -m scbt.bench.episode", cwd = "scbt" }
+scbt-learn = { cmd = "python -m scbt.bench.learn", cwd = "scbt" }
+scbt-frozen = { cmd = "python -m scbt.bench.frozen", cwd = "scbt" }
+scbt-crystallize = { cmd = "python -m scbt.crystallize", cwd = "scbt" }
+scbt-matrix = { cmd = "python -m scbt.bench.matrix", cwd = "scbt" }
+scbt-report = { cmd = "python -m scbt.bench.report", cwd = "scbt" }
+scbt-test = { cmd = "python -m pytest -q tests", cwd = "scbt" }
+
 [dependencies]
 python = "3.10.*"
 pip = "*"
@@ -35,3 +45,9 @@ Shapely = "*"
 azure-storage-blob = "*"
 albumentations = "==1.3.0"
 open3d = ">=0.16.0"
+# SCBT
+scbt = { path = "scbt", editable = true }
+py-trees = ">=2.2"
+cma = ">=3.3"
+google-adk = ">=2.0"
+sentence-transformers = ">=3.0"
