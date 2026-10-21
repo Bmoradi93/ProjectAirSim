@@ -47,6 +47,15 @@ services:
     gpus: all
     devices:
       - /dev/dri
+    # /dev/dri/render* nodes are owned by the host's "video"/"render" groups (not root), so
+    # the container's non-root user needs matching supplementary GIDs to access them even
+    # with privileged: true (that only lifts the cgroup device whitelist, not standard Unix
+    # file permissions). "video" GID 44 is a near-universal Linux default; "render" varies by
+    # host/distro and is set via .env (see .env.example -- find yours with
+    # `getent group render | cut -d: -f3`).
+    group_add:
+      - "${VIDEO_GID:-44}"
+      - "${RENDER_GID:-991}"
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility,graphics,display,video

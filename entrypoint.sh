@@ -71,6 +71,11 @@ if [ -t 1 ]; then
 ================================================================================
 EOF
 
+    # This GPU/Vulkan check is purely informational (best-effort). It must never be able to
+    # abort the container, since that would also skip `exec "$@"` below and leave the user
+    # with no shell. Disable `set -e` for this block as defense in depth, in addition to
+    # guarding the individual fragile pipeline with `|| true`.
+    set +e
     echo " GPU / Vulkan check:"
     if command -v nvidia-smi >/dev/null 2>&1 && nvidia-smi >/dev/null 2>&1; then
         echo "   nvidia-smi : OK ($(nvidia-smi --query-gpu=name --format=csv,noheader))"
@@ -78,7 +83,7 @@ EOF
         echo "   nvidia-smi : NOT AVAILABLE -- did you run with --gpus all?"
     fi
     if command -v vulkaninfo >/dev/null 2>&1; then
-        gpu_line=$(vulkaninfo --summary 2>/dev/null | grep -m1 "deviceName")
+        gpu_line=$(vulkaninfo --summary 2>/dev/null | grep -m1 "deviceName" || true)
         if [ -n "$gpu_line" ]; then
             echo "   vulkaninfo : OK ($(echo "$gpu_line" | awk -F'= ' '{print $2}'))"
         else
@@ -87,6 +92,7 @@ EOF
         fi
     fi
     echo "================================================================================"
+    set -e
 fi
 
 exec "$@"
