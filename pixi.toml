@@ -11,8 +11,11 @@ test-offline = { cmd = "pytest --sim-host offline -v test_json_schema.py test_da
 hello-drone = { cmd = "python hello_drone.py", cwd = "client/python/example_user_scripts" }
 hello-rover = { cmd = "python hello_rover.py", cwd = "client/python/example_user_scripts" }
 hello-wheeled-vehicle = { cmd = "python hello_wheeled_vehicle.py", cwd = "client/python/example_user_scripts" }
+two-drones = { cmd = "python two_drones.py", cwd = "client/python/example_user_scripts" }
+hexarotor = { cmd = "python hexarotor.py", cwd = "client/python/example_user_scripts" }
 keyboard-control = { cmd = "python keyboard_control.py", cwd = "client/python/example_user_scripts" }
 lidar-gpu = { cmd = "python lidar_basic_gpu.py", cwd = "client/python/example_user_scripts" }
+validate-configs = { cmd = "python tools/ci/validate_configs.py" }
 
 # --- SCBT: Self-Crystallizing Behavior Trees (research code, see scbt/) ---
 scbt-runtime = { cmd = "python -m scbt.sim.launch_runtime", cwd = "scbt" }
