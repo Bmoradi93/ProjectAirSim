@@ -47,15 +47,16 @@ services:
     gpus: all
     devices:
       - /dev/dri
-    # /dev/dri/render* nodes are owned by the host's "video"/"render" groups (not root), so
-    # the container's non-root user needs matching supplementary GIDs to access them even
-    # with privileged: true (that only lifts the cgroup device whitelist, not standard Unix
-    # file permissions). "video" GID 44 is a near-universal Linux default; "render" varies by
-    # host/distro and is set via .env (see .env.example -- find yours with
-    # `getent group render | cut -d: -f3`).
+    # /dev/dri/render* and /dev/input/event* nodes are owned by the host's "video"/"render"/
+    # "input" groups (not root), so the container's non-root user needs matching supplementary
+    # GIDs to access them even with privileged: true (that only lifts the cgroup device
+    # whitelist, not standard Unix file permissions). "video" GID 44 is a near-universal Linux
+    # default; "render"/"input" vary by host/distro and are set via .env (see .env.example --
+    # find yours with `getent group render | cut -d: -f3` / `getent group input | cut -d: -f3`).
     group_add:
       - "${VIDEO_GID:-44}"
       - "${RENDER_GID:-991}"
+      - "${INPUT_GID:-994}"
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility,graphics,display,video
@@ -70,6 +71,12 @@ services:
       - ${UE_ROOT_HOST_PATH:?Set UE_ROOT_HOST_PATH in .env to your Unreal Engine checkout path (see .env.example)}:/workspace/UnrealEngine
       # X11/XWayland socket for the Editor GUI window
       - /tmp/.X11-unix:/tmp/.X11-unix
+      # Host keyboard/mouse input devices, needed for example scripts like
+      # keyboard_control.py (reads /dev/input/event* via the "inputs" package). Bind-mounted
+      # (not listed under "devices") so the by-id/by-path symlinks "inputs" needs to classify
+      # device types are preserved -- Docker's "devices:" flattens directories to raw nodes
+      # and drops symlinks.
+      - /dev/input:/dev/input
       # Vulkan ICD/layer search paths some drivers expect on the host side too
       - /usr/share/vulkan/icd.d:/usr/share/vulkan/icd.d:ro
 
