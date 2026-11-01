@@ -410,3 +410,5 @@ AGENTS.md
 
 # Docker dev environment: host-specific paths (see .env.example)
 .env
+/PX4-Autopilot/
+/*.AppImage

@@ -81,3 +81,43 @@ services:
       - /usr/share/vulkan/icd.d:/usr/share/vulkan/icd.d:ro
 
     working_dir: /workspace/ProjectAirSim
+
+  px4-sitl:
+    build:
+      context: .
+      dockerfile: Dockerfile.px4
+      args:
+        USER_ID: ${USER_ID:-1000}
+        GROUP_ID: ${GROUP_ID:-1000}
+    image: projectairsim-px4-sitl
+    container_name: projectairsim-px4-sitl
+    hostname: projectairsim-px4-sitl
+    stdin_open: true
+    tty: true
+    network_mode: host
+    volumes:
+      - ${PX4_HOST_PATH:-./PX4-Autopilot}:/workspace/PX4-Autopilot
+    working_dir: /workspace/PX4-Autopilot
+    command: ["make", "px4_sitl", "none_iris"]
+
+  ros2-mavros:
+    build:
+      context: .
+      dockerfile: Dockerfile.ros2
+      args:
+        USER_ID: ${USER_ID:-1000}
+        GROUP_ID: ${GROUP_ID:-1000}
+    image: projectairsim-ros2-mavros
+    container_name: projectairsim-ros2-mavros
+    hostname: projectairsim-ros2-mavros
+    stdin_open: true
+    tty: true
+    network_mode: host
+    ipc: host
+    cap_add:
+      - SYS_NICE
+    ulimits:
+      rtprio: 99
+    volumes:
+      - ${PROJECTAIRSIM_HOST_PATH:-.}:/workspace/ProjectAirSim
+    working_dir: /workspace/ProjectAirSim

@@ -1,0 +1,112 @@
+# ---------------------------------------------------------------------------------------------------------------------
+#
+# Dockerfile.ros2 - ROS 2 Humble container with MAVROS built from https://github.com/Bmoradi93/mavros (ros2 branch).
+#
+# Includes:
+#   - ROS 2 Humble (Ubuntu 22.04)
+#   - GeographicLib datasets required by MAVROS
+#   - MAVROS (`libmavconn`, `mavros_msgs`, `mavros`, `mavros_extras`) built from Bmoradi93/mavros
+#   - Project AirSim repo bind-mounted at /workspace/ProjectAirSim (via docker-compose.yml) so
+#     projectairsim_ros2_cpp or projectairsim_ros2 can also be built/run in the same container.
+#
+# ---------------------------------------------------------------------------------------------------------------------
+
+FROM ros:humble-ros-base
+
+ARG USER_ID=1000
+ARG GROUP_ID=1000
+ARG USERNAME=dev
+ARG MAVROS_REPO=https://github.com/Bmoradi93/mavros.git
+ARG MAVROS_BRANCH=ros2
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    TZ=UTC \
+    ROS_DISTRO=humble
+
+# Install build tools, GeographicLib, and ROS 2 build dependencies for MAVROS & Project AirSim ROS 2 bridge
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
+        ca-certificates \
+        ccache \
+        cmake \
+        curl \
+        geographiclib-tools \
+        git \
+        libasio-dev \
+        libconsole-bridge-dev \
+        libeigen3-dev \
+        libgeographic-dev \
+        ninja-build \
+        pkg-config \
+        python3-click \
+        python3-colcon-common-extensions \
+        python3-pip \
+        python3-rosdep \
+        python3-vcstool \
+        ros-humble-angles \
+        ros-humble-control-msgs \
+        ros-humble-diagnostic-msgs \
+        ros-humble-diagnostic-updater \
+        ros-humble-eigen-stl-containers \
+        ros-humble-eigen3-cmake-module \
+        ros-humble-geographic-msgs \
+        ros-humble-geometry-msgs \
+        ros-humble-mavlink \
+        ros-humble-message-filters \
+        ros-humble-nav-msgs \
+        ros-humble-pluginlib \
+        ros-humble-rclcpp \
+        ros-humble-rclcpp-action \
+        ros-humble-rclcpp-components \
+        ros-humble-rcpputils \
+        ros-humble-rosgraph-msgs \
+        ros-humble-rosidl-default-generators \
+        ros-humble-rosidl-default-runtime \
+        ros-humble-sensor-msgs \
+        ros-humble-std-msgs \
+        ros-humble-std-srvs \
+        ros-humble-tf2-eigen \
+        ros-humble-tf2-msgs \
+        ros-humble-tf2-ros \
+        ros-humble-trajectory-msgs \
+        ros-humble-urdf \
+        ros-humble-visualization-msgs \
+        sudo \
+        wget \
+    && rm -rf /var/lib/apt/lists/* || true
+
+# Non-root user matching host UID/GID
+RUN (getent group ${GROUP_ID} || groupadd -g ${GROUP_ID} ${USERNAME}) \
+    && (getent passwd ${USER_ID} || useradd -m -u ${USER_ID} -g ${GROUP_ID} -s /bin/bash ${USERNAME}) \
+    && echo "${USERNAME} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/${USERNAME} \
+    && chmod 0440 /etc/sudoers.d/${USERNAME}
+
+# Clone Bmoradi93/mavros, install GeographicLib datasets, rosdep dependencies, and build MAVROS workspace
+RUN mkdir -p /opt/mavros_ws/src \
+    && git clone --branch ${MAVROS_BRANCH} --depth 1 ${MAVROS_REPO} /opt/mavros_ws/src/mavros \
+    && bash /opt/mavros_ws/src/mavros/mavros/scripts/install_geographiclib_datasets.sh \
+    && apt-get update \
+    && (rosdep init || true) \
+    && rosdep update --rosdistro=${ROS_DISTRO} \
+    && rosdep install --from-paths /opt/mavros_ws/src --ignore-src --rosdistro=${ROS_DISTRO} -y \
+    && source /opt/ros/${ROS_DISTRO}/setup.bash \
+    && cd /opt/mavros_ws \
+    && colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF \
+    && rm -rf /opt/mavros_ws/build /opt/mavros_ws/log /var/lib/apt/lists/* \
+    && chown -R ${USERNAME}:${USERNAME} /opt/mavros_ws
+
+# Auto-source ROS 2 Humble and the built MAVROS workspace in interactive shells and ros_entrypoint.sh
+RUN sed -i '/exec "\$@"/i if [ -f "/opt/mavros_ws/install/setup.bash" ]; then source "/opt/mavros_ws/install/setup.bash"; fi' /ros_entrypoint.sh \
+    && echo 'source /opt/ros/humble/setup.bash' >> /home/${USERNAME}/.bashrc \
+    && echo 'source /opt/mavros_ws/install/setup.bash' >> /home/${USERNAME}/.bashrc
+
+USER ${USERNAME}
+ENV HOME=/home/${USERNAME}
+WORKDIR /workspace/ProjectAirSim
+
+ENTRYPOINT ["/ros_entrypoint.sh"]
+CMD ["/bin/bash"]
