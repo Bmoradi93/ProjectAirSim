@@ -114,10 +114,22 @@ services:
     tty: true
     network_mode: host
     ipc: host
+    gpus: all
+    devices:
+      - /dev/dri
+    group_add:
+      - "${VIDEO_GID:-44}"
+      - "${RENDER_GID:-991}"
+    environment:
+      - DISPLAY=${DISPLAY}
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - QT_X11_NO_MITSHM=1
     cap_add:
       - SYS_NICE
     ulimits:
       rtprio: 99
     volumes:
       - ${PROJECTAIRSIM_HOST_PATH:-.}:/workspace/ProjectAirSim
+      - /tmp/.X11-unix:/tmp/.X11-unix
     working_dir: /workspace/ProjectAirSim

@@ -37,6 +37,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         geographiclib-tools \
         git \
         libasio-dev \
+        libboost-dev \
         libconsole-bridge-dev \
         libeigen3-dev \
         libgeographic-dev \
@@ -66,6 +67,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         ros-humble-rosgraph-msgs \
         ros-humble-rosidl-default-generators \
         ros-humble-rosidl-default-runtime \
+        ros-humble-rqt-image-view \
+        ros-humble-rviz2 \
         ros-humble-sensor-msgs \
         ros-humble-std-msgs \
         ros-humble-std-srvs \
@@ -99,10 +102,11 @@ RUN mkdir -p /opt/mavros_ws/src \
     && rm -rf /opt/mavros_ws/build /opt/mavros_ws/log /var/lib/apt/lists/* \
     && chown -R ${USERNAME}:${USERNAME} /opt/mavros_ws
 
-# Auto-source ROS 2 Humble and the built MAVROS workspace in interactive shells and ros_entrypoint.sh
-RUN sed -i '/exec "\$@"/i if [ -f "/opt/mavros_ws/install/setup.bash" ]; then source "/opt/mavros_ws/install/setup.bash"; fi' /ros_entrypoint.sh \
+# Auto-source ROS 2 Humble, the built MAVROS workspace, and the Project AirSim ROS 2 workspace (if built)
+RUN sed -i '/exec "\$@"/i if [ -f "/opt/mavros_ws/install/setup.bash" ]; then source "/opt/mavros_ws/install/setup.bash"; fi\nif [ -f "/workspace/ProjectAirSim/ros/install/setup.bash" ]; then source "/workspace/ProjectAirSim/ros/install/setup.bash"; fi' /ros_entrypoint.sh \
     && echo 'source /opt/ros/humble/setup.bash' >> /home/${USERNAME}/.bashrc \
-    && echo 'source /opt/mavros_ws/install/setup.bash' >> /home/${USERNAME}/.bashrc
+    && echo 'source /opt/mavros_ws/install/setup.bash' >> /home/${USERNAME}/.bashrc \
+    && echo 'if [ -f "/workspace/ProjectAirSim/ros/install/setup.bash" ]; then source "/workspace/ProjectAirSim/ros/install/setup.bash"; fi' >> /home/${USERNAME}/.bashrc
 
 USER ${USERNAME}
 ENV HOME=/home/${USERNAME}
