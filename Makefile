@@ -4,7 +4,7 @@ SCENE_CONFIG ?= scene_px4_sitl.jsonc
 SIM_CONFIG_PATH ?= /workspace/ProjectAirSim/client/python/example_user_scripts/sim_config
 FCU_URL ?= udp://:14550@127.0.0.1:18570
 
-.PHONY: help editor game ros2-bridge-build ros2-bridge mavros rviz
+.PHONY: help editor game ros2-bridge-build ros2-bridge ros2-ws-build mavros rviz
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z0-9_-]+:.*## ' $(MAKEFILE_LIST) | sed 's/:.*## /\t/'
@@ -26,6 +26,13 @@ ros2-bridge: ## Run projectairsim_ros2_cpp_node (loads SCENE_CONFIG, default: sc
 	ros2 run projectairsim_ros2_cpp projectairsim_ros2_cpp_node --ros-args \
 		-p scene_config:=$(SCENE_CONFIG) \
 		-p sim_config_path:=$(SIM_CONFIG_PATH)
+
+ros2-ws-build: ## Build all custom ROS 2 packages in /workspace/ProjectAirSim/ros2_workspace
+	source /opt/ros/humble/setup.bash && \
+	source /opt/mavros_ws/install/setup.bash && \
+	if [ -f /workspace/ProjectAirSim/ros/install/setup.bash ]; then source /workspace/ProjectAirSim/ros/install/setup.bash; fi && \
+	cd /workspace/ProjectAirSim/ros2_workspace && \
+	colcon build --symlink-install
 
 mavros: ## Launch ROS 2 MAVROS connected to PX4 SITL (override with FCU_URL=...)
 	source /opt/ros/humble/setup.bash && \

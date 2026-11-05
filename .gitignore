@@ -366,6 +366,11 @@ ros/log/
 ros/log-*/
 ros/src/CMakeLists.txt
 
+# ros2_workspace
+ros2_workspace/build/
+ros2_workspace/install/
+ros2_workspace/log/
+
 # Generated test and benchmark artifacts
 test-artifact-dir/
 

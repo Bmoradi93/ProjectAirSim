@@ -102,11 +102,12 @@ RUN mkdir -p /opt/mavros_ws/src \
     && rm -rf /opt/mavros_ws/build /opt/mavros_ws/log /var/lib/apt/lists/* \
     && chown -R ${USERNAME}:${USERNAME} /opt/mavros_ws
 
-# Auto-source ROS 2 Humble, the built MAVROS workspace, and the Project AirSim ROS 2 workspace (if built)
-RUN sed -i '/exec "\$@"/i if [ -f "/opt/mavros_ws/install/setup.bash" ]; then source "/opt/mavros_ws/install/setup.bash"; fi\nif [ -f "/workspace/ProjectAirSim/ros/install/setup.bash" ]; then source "/workspace/ProjectAirSim/ros/install/setup.bash"; fi' /ros_entrypoint.sh \
+# Auto-source ROS 2 Humble, the built MAVROS workspace, the Project AirSim ROS 2 workspace, and ros2_workspace (if built)
+RUN sed -i '/exec "\$@"/i if [ -f "/opt/mavros_ws/install/setup.bash" ]; then source "/opt/mavros_ws/install/setup.bash"; fi\nif [ -f "/workspace/ProjectAirSim/ros/install/setup.bash" ]; then source "/workspace/ProjectAirSim/ros/install/setup.bash"; fi\nif [ -f "/workspace/ProjectAirSim/ros2_workspace/install/setup.bash" ]; then source "/workspace/ProjectAirSim/ros2_workspace/install/setup.bash"; fi' /ros_entrypoint.sh \
     && echo 'source /opt/ros/humble/setup.bash' >> /home/${USERNAME}/.bashrc \
     && echo 'source /opt/mavros_ws/install/setup.bash' >> /home/${USERNAME}/.bashrc \
-    && echo 'if [ -f "/workspace/ProjectAirSim/ros/install/setup.bash" ]; then source "/workspace/ProjectAirSim/ros/install/setup.bash"; fi' >> /home/${USERNAME}/.bashrc
+    && echo 'if [ -f "/workspace/ProjectAirSim/ros/install/setup.bash" ]; then source "/workspace/ProjectAirSim/ros/install/setup.bash"; fi' >> /home/${USERNAME}/.bashrc \
+    && echo 'if [ -f "/workspace/ProjectAirSim/ros2_workspace/install/setup.bash" ]; then source "/workspace/ProjectAirSim/ros2_workspace/install/setup.bash"; fi' >> /home/${USERNAME}/.bashrc
 
 USER ${USERNAME}
 ENV HOME=/home/${USERNAME}
