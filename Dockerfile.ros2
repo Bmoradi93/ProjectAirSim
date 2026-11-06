@@ -33,6 +33,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         curl \
         geographiclib-tools \
         git \
+        joystick \
         libasio-dev \
         libboost-dev \
         libconsole-bridge-dev \
@@ -53,6 +54,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         ros-humble-eigen3-cmake-module \
         ros-humble-geographic-msgs \
         ros-humble-geometry-msgs \
+        ros-humble-joy \
         ros-humble-mavlink \
         ros-humble-message-filters \
         ros-humble-nav-msgs \
@@ -69,6 +71,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         ros-humble-sensor-msgs \
         ros-humble-std-msgs \
         ros-humble-std-srvs \
+        ros-humble-teleop-twist-joy \
         ros-humble-tf2-eigen \
         ros-humble-tf2-msgs \
         ros-humble-tf2-ros \

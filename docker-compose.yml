@@ -112,6 +112,7 @@ services:
     hostname: projectairsim-ros2-mavros
     stdin_open: true
     tty: true
+    privileged: true
     network_mode: host
     ipc: host
     gpus: all
@@ -120,6 +121,7 @@ services:
     group_add:
       - "${VIDEO_GID:-44}"
       - "${RENDER_GID:-991}"
+      - "${INPUT_GID:-994}"
     environment:
       - DISPLAY=${DISPLAY}
       - NVIDIA_VISIBLE_DEVICES=all
@@ -132,4 +134,5 @@ services:
     volumes:
       - ${PROJECTAIRSIM_HOST_PATH:-.}:/workspace/ProjectAirSim
       - /tmp/.X11-unix:/tmp/.X11-unix
+      - /dev/input:/dev/input
     working_dir: /workspace/ProjectAirSim

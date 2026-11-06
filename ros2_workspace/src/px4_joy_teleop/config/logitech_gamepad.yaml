@@ -1,0 +1,46 @@
+# Default configuration for Logitech F310 / F710 (XInput mode) and Xbox controllers
+joy_node:
+  ros__parameters:
+    device_id: 0
+    deadzone: 0.05
+    autorepeat_rate: 30.0
+
+px4_joy_teleop_node:
+  ros__parameters:
+    # "offboard_velocity" -> publishes mavros_msgs/msg/PositionTarget (FRAME_BODY_NED) to /setpoint_raw/local
+    # "manual_control"    -> publishes mavros_msgs/msg/ManualControl to /manual_control/send
+    control_mode: "offboard_velocity"
+    publish_rate_hz: 30.0
+    deadzone: 0.08
+
+    # MAVROS topic & service names
+    joy_topic: "/joy"
+    state_topic: "/state"
+    setpoint_raw_topic: "/setpoint_raw/local"
+    manual_control_topic: "/manual_control/send"
+    arming_service: "/cmd/arming"
+    set_mode_service: "/set_mode"
+
+    # Mode 2 RC Stick Mapping (Logitech F310/F710 in XInput mode)
+    #   Left stick:  vertical (axis 1) = Climb/Descend, horizontal (axis 0) = Yaw Left/Right
+    #   Right stick: vertical (axis 4) = Forward/Back,  horizontal (axis 3) = Roll Left/Right
+    axis_vx: 4
+    axis_vy: 3
+    axis_vz: 1
+    axis_yaw_rate: 0
+
+    # Maximum speeds
+    max_vx: 3.0        # m/s (Forward / Backward)
+    max_vy: 3.0        # m/s (Left / Right)
+    max_vz: 1.5        # m/s (Up / Down)
+    max_yaw_rate: 1.0  # rad/s (Yaw rate)
+
+    # Button Mapping (Logitech F310/F710 in XInput mode)
+    btn_arm: 0           # A button:     Arm
+    btn_disarm: 1        # B button:     Disarm
+    btn_offboard: 2      # X button:     Switch to OFFBOARD mode
+    btn_land: 3          # Y button:     Switch to AUTO.LAND mode
+    btn_loiter: 4        # LB shoulder:  Switch to AUTO.LOITER (Hold position)
+    btn_takeoff: 5       # RB shoulder:  Switch to AUTO.TAKEOFF mode
+    btn_rtl: 6           # Back button:  Switch to AUTO.RTL (Return to Launch)
+    btn_arm_offboard: 7  # Start button: Arm + Switch to OFFBOARD mode

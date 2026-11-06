@@ -4,7 +4,7 @@ SCENE_CONFIG ?= scene_px4_sitl.jsonc
 SIM_CONFIG_PATH ?= /workspace/ProjectAirSim/client/python/example_user_scripts/sim_config
 FCU_URL ?= udp://:14550@127.0.0.1:18570
 
-.PHONY: help editor game ros2-bridge-build ros2-bridge ros2-build ros2-ws-build mavros rviz
+.PHONY: help editor game ros2-bridge-build ros2-bridge ros2-build ros2-ws-build mavros joy-teleop rviz efferax efferax-launch autonomy launch
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z0-9_-]+:.*## ' $(MAKEFILE_LIST) | sed 's/:.*## /\t/'
@@ -36,6 +36,16 @@ mavros: ## Launch ROS 2 MAVROS connected to PX4 SITL (override with FCU_URL=...)
 	source /workspace/ProjectAirSim/ros2_workspace/install/setup.bash && \
 	ros2 launch mavros px4.launch fcu_url:=$(FCU_URL)
 
+joy-teleop: ## Launch Logitech/Xbox gamepad teleop node (joy_node + px4_joy_teleop_node)
+	source /opt/ros/humble/setup.bash && \
+	source /workspace/ProjectAirSim/ros2_workspace/install/setup.bash && \
+	ros2 launch px4_joy_teleop joy_teleop.launch.py
+
 rviz: ## Launch RViz2 pre-configured with Drone1 Cameras, LiDAR (Best Effort QoS), and TF
 	source /opt/ros/humble/setup.bash && \
 	rviz2 -d /workspace/ProjectAirSim/ros2_workspace/src/projectairsim_ros2_cpp/config/px4_drone.rviz
+
+efferax efferax-launch autonomy launch: ## Launch full Efferax stack (Sim Bridge + MAVROS + Gamepad Teleop + RViz2)
+	source /opt/ros/humble/setup.bash && \
+	source /workspace/ProjectAirSim/ros2_workspace/install/setup.bash && \
+	ros2 launch efferax_launcher efferax.launch.py
