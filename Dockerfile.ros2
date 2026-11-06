@@ -1,13 +1,12 @@
 # ---------------------------------------------------------------------------------------------------------------------
 #
-# Dockerfile.ros2 - ROS 2 Humble container with MAVROS built from https://github.com/Bmoradi93/mavros (ros2 branch).
+# Dockerfile.ros2 - ROS 2 Humble container for Project AirSim + MAVROS + Autonomy Stack.
 #
 # Includes:
-#   - ROS 2 Humble (Ubuntu 22.04)
-#   - GeographicLib datasets required by MAVROS
-#   - MAVROS (`libmavconn`, `mavros_msgs`, `mavros`, `mavros_extras`) built from Bmoradi93/mavros
+#   - ROS 2 Humble (Ubuntu 22.04) + RViz2 + rqt_image_view
+#   - GeographicLib datasets and all dependencies required to build MAVROS (`ros2_workspace/src/mavros`)
 #   - Project AirSim repo bind-mounted at /workspace/ProjectAirSim (via docker-compose.yml) so
-#     projectairsim_ros2_cpp or projectairsim_ros2 can also be built/run in the same container.
+#     `ros/` (`projectairsim_ros2_cpp`) and `ros2_workspace/` (`mavros` + autonomy packages) build and run in-place.
 #
 # ---------------------------------------------------------------------------------------------------------------------
 
@@ -16,8 +15,6 @@ FROM ros:humble-ros-base
 ARG USER_ID=1000
 ARG GROUP_ID=1000
 ARG USERNAME=dev
-ARG MAVROS_REPO=https://github.com/Bmoradi93/mavros.git
-ARG MAVROS_BRANCH=ros2
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -88,25 +85,14 @@ RUN (getent group ${GROUP_ID} || groupadd -g ${GROUP_ID} ${USERNAME}) \
     && echo "${USERNAME} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/${USERNAME} \
     && chmod 0440 /etc/sudoers.d/${USERNAME}
 
-# Clone Bmoradi93/mavros, install GeographicLib datasets, rosdep dependencies, and build MAVROS workspace
-RUN mkdir -p /opt/mavros_ws/src \
-    && git clone --branch ${MAVROS_BRANCH} --depth 1 ${MAVROS_REPO} /opt/mavros_ws/src/mavros \
-    && bash /opt/mavros_ws/src/mavros/mavros/scripts/install_geographiclib_datasets.sh \
-    && apt-get update \
-    && (rosdep init || true) \
-    && rosdep update --rosdistro=${ROS_DISTRO} \
-    && rosdep install --from-paths /opt/mavros_ws/src --ignore-src --rosdistro=${ROS_DISTRO} -y \
-    && source /opt/ros/${ROS_DISTRO}/setup.bash \
-    && cd /opt/mavros_ws \
-    && colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF \
-    && rm -rf /opt/mavros_ws/build /opt/mavros_ws/log /var/lib/apt/lists/* \
-    && chown -R ${USERNAME}:${USERNAME} /opt/mavros_ws
+# Install GeographicLib datasets required by MAVROS (egm96-5 geoid, egm96 gravity, emm2015 magnetic)
+RUN geographiclib-get-geoids egm96-5 \
+    && geographiclib-get-gravity egm96 \
+    && geographiclib-get-magnetic emm2015
 
-# Auto-source ROS 2 Humble, the built MAVROS workspace, the Project AirSim ROS 2 workspace, and ros2_workspace (if built)
-RUN sed -i '/exec "\$@"/i if [ -f "/opt/mavros_ws/install/setup.bash" ]; then source "/opt/mavros_ws/install/setup.bash"; fi\nif [ -f "/workspace/ProjectAirSim/ros/install/setup.bash" ]; then source "/workspace/ProjectAirSim/ros/install/setup.bash"; fi\nif [ -f "/workspace/ProjectAirSim/ros2_workspace/install/setup.bash" ]; then source "/workspace/ProjectAirSim/ros2_workspace/install/setup.bash"; fi' /ros_entrypoint.sh \
+# Auto-source ROS 2 Humble and ros2_workspace (if built)
+RUN sed -i '/exec "\$@"/i if [ -f "/workspace/ProjectAirSim/ros2_workspace/install/setup.bash" ]; then source "/workspace/ProjectAirSim/ros2_workspace/install/setup.bash"; fi' /ros_entrypoint.sh \
     && echo 'source /opt/ros/humble/setup.bash' >> /home/${USERNAME}/.bashrc \
-    && echo 'source /opt/mavros_ws/install/setup.bash' >> /home/${USERNAME}/.bashrc \
-    && echo 'if [ -f "/workspace/ProjectAirSim/ros/install/setup.bash" ]; then source "/workspace/ProjectAirSim/ros/install/setup.bash"; fi' >> /home/${USERNAME}/.bashrc \
     && echo 'if [ -f "/workspace/ProjectAirSim/ros2_workspace/install/setup.bash" ]; then source "/workspace/ProjectAirSim/ros2_workspace/install/setup.bash"; fi' >> /home/${USERNAME}/.bashrc
 
 USER ${USERNAME}

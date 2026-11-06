@@ -1,0 +1,4 @@
+[submodule "ros2_workspace/src/mavros"]
+	path = ros2_workspace/src/mavros
+	url = https://github.com/Bmoradi93/mavros.git
+	branch = ros2

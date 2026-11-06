@@ -71,7 +71,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build Project AirSim C++ client dependencies static" FORCE)
 
-get_filename_component(PROJECTAIRSIM_ROOT "${CMAKE_CURRENT_LIST_DIR}/../.." ABSOLUTE)
+get_filename_component(PROJECTAIRSIM_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../.." ABSOLUTE)
 set(PROJECTAIRSIM_CPP_CLIENT_DIR
     "${PROJECTAIRSIM_ROOT}/client/cpp"
     CACHE PATH "Path to the Project AirSim C++ client source tree")
